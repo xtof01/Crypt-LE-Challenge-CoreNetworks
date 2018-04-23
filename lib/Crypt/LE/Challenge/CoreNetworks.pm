@@ -29,7 +29,7 @@ sub handle_challenge_dns {
     my $self = shift;
     my ($challenge, $params) = @_;
     $challenge->{logger}->info("Processing the 'dns' challenge for '$challenge->{domain}' with " . __PACKAGE__) if $challenge->{logger};
-    my $value = encode_base64url(sha256("$challenge->{token}.$challenge->{fingerprint}"));
+    my $data = encode_base64url(sha256("$challenge->{token}.$challenge->{fingerprint}"));
     my (undef, $domain) = $challenge->{domain} =~ /^(\*\.)?(.+)$/;
     my $fqdn = '_acme-challenge.' . $domain;
 
@@ -43,10 +43,11 @@ sub handle_challenge_dns {
                 my $zone = $self->{client}->zone($zonename);
 
                 # create record
-                $challenge->{logger}->info("Creating $rr TXT record in zone $zonename") if $challenge->{logger};
-                if ($zone->add($rr, 60, 'TXT', $value)) {
+                $challenge->{logger}->info("Creating $rr TXT record ($data) in zone $zonename") if $challenge->{logger};
+                if ($zone->add($rr, 60, 'TXT', $data)) {
                     $self->{cleanup}->{$challenge->{domain}}->{zone} = $zonename;
                     $self->{cleanup}->{$challenge->{domain}}->{rr} = $rr;
+                    $self->{cleanup}->{$challenge->{domain}}->{data} = $data;
                     if ($zone->commit()) {
                         sleep(1);
                         return 1;
@@ -82,9 +83,10 @@ sub handle_verification_dns {
     }
     my $zonename = $self->{cleanup}->{$results->{domain}}->{zone};
     my $rr = $self->{cleanup}->{$results->{domain}}->{rr};
+    my $data = $self->{cleanup}->{$results->{domain}}->{data};
     my $zone = $self->{client}->zone($zonename);
-    $results->{logger}->info("Deleting $rr TXT record in zone $zonename") if $challenge->{logger};
-    if ($zone->remove($rr, undef, 'TXT', undef)) {
+    $results->{logger}->info("Deleting $rr TXT record ($data) in zone $zonename") if $results->{logger};
+    if ($zone->remove($rr, undef, 'TXT', $data)) {
         if ($zone->commit()) {
             return 1;
         }
