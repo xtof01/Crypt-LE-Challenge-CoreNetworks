@@ -49,7 +49,7 @@ sub handle_challenge_dns {
                     $self->{cleanup}->{$challenge->{domain}}->{rr} = $rr;
                     $self->{cleanup}->{$challenge->{domain}}->{data} = $data;
                     if ($zone->commit()) {
-                        sleep(1);
+                        sleep(5);
                         return 1;
                     }
                 }
@@ -75,12 +75,7 @@ sub handle_verification_tls {
 sub handle_verification_dns {
     my $self = shift;
     my ($results, $params) = @_;
-    $results->{logger}->info("Processing the 'http' verification for '$results->{domain}' with " . __PACKAGE__) if $results->{logger};
-    if ($results->{valid}) {
-        print "Domain verification results for '$results->{domain}': success.\n";
-    } else {
-        print "Domain verification results for '$results->{domain}': error. $results->{error}\n";
-    }
+    $results->{logger}->info("Processing the 'dns' verification for '$results->{domain}' with " . __PACKAGE__) if $results->{logger};
     my $zonename = $self->{cleanup}->{$results->{domain}}->{zone};
     my $rr = $self->{cleanup}->{$results->{domain}}->{rr};
     my $data = $self->{cleanup}->{$results->{domain}}->{data};
@@ -88,6 +83,7 @@ sub handle_verification_dns {
     $results->{logger}->info("Deleting $rr TXT record ($data) in zone $zonename") if $results->{logger};
     if ($zone->remove($rr, undef, 'TXT', $data)) {
         if ($zone->commit()) {
+            sleep(5);
             return 1;
         }
     }
