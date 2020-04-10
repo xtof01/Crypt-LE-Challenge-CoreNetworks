@@ -3,7 +3,7 @@ package Crypt::LE::Challenge::CoreNetworks;
 use strict;
 use warnings;
 
-our $VERSION = '0.001';
+our $VERSION = '0.002';
 
 use Digest::SHA 'sha256';
 use MIME::Base64 'encode_base64url';
@@ -60,6 +60,7 @@ sub handle_challenge_dns {
 
     }
     else {
+        $challenge->{logger}->info("Unable to log into CoreNetworks DNS API. Have yo set the ENV vars CORENETWORKS_USER and CORENETWORKS_PASSWORD corectly?") if $challenge->{logger};
         return 0;
     }
 }
