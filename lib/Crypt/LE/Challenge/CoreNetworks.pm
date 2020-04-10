@@ -60,7 +60,7 @@ sub handle_challenge_dns {
 
     }
     else {
-        $challenge->{logger}->info("Unable to log into CoreNetworks DNS API. Have yo set the ENV vars CORENETWORKS_USER and CORENETWORKS_PASSWORD corectly?") if $challenge->{logger};
+        $challenge->{logger}->error("Unable to log into CoreNetworks DNS API. Have yo set the ENV vars CORENETWORKS_USER and CORENETWORKS_PASSWORD corectly?") if $challenge->{logger};
         return 0;
     }
 }
